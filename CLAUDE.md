@@ -68,6 +68,20 @@ Pages never call `fetch` directly. They import custom hooks from `hooks/`, which
 
 Tailwind v4 via `@tailwindcss/vite` plugin — no `tailwind.config.ts` file. Theme tokens and CSS variables are defined entirely in `src/index.css` (shadcn generates and owns this file). Use `cn()` from `src/lib/utils.ts` for conditional class merging.
 
+### Forms
+
+Forms use `react-hook-form` with `zodResolver`. Schemas live in `src/schemas/` and types are inferred with `z.infer<>`. shadcn `Select` components are not compatible with `register` — always wrap them in a `<Controller>` from react-hook-form. Use `setValueAs` on `register()` to coerce number inputs from strings.
+
+Toast notifications use `sonner` — call `toast.error()` / `toast.success()` from the `'sonner'` package.
+
+### Round logging flow
+
+`/rounds/new` is a two-step wizard: Step 1 collects `RoundHeaderForm` data, Step 2 collects per-hole scores via `HoleScoreEntry`. Rounds **cannot be edited** — the UI exposes a "relog" pattern: navigate to `/rounds/new` with `location.state = { relogRound: Round }` to pre-populate the form; on successful save the original round is deleted.
+
+### Auth
+
+`AuthContext` and `RouteGuard` are stubs — both are hardcoded to pass through. `golferId` in context is always `null` until real auth is wired. Do not build features that depend on auth being real yet.
+
 ### Backend
 
-This UI targets the FastAPI golf tracker at `../golf-tracker-basic-api`. All TypeScript types in `src/types/` mirror the Pydantic schemas in `schemas.py`. If the backend schema changes, update the corresponding file in `src/types/` and the matching Zod schema in `src/schemas/` (added in Phase 2).
+This UI targets the FastAPI golf tracker at `../golf-tracker-basic-api`. All TypeScript types in `src/types/` mirror the Pydantic schemas in `schemas.py`. If the backend schema changes, update the corresponding file in `src/types/` and the matching Zod schema in `src/schemas/`.
