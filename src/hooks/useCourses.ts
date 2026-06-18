@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { coursesApi } from '@/api/courses'
 import type { CourseCreate, CourseHoleCreate } from '@/types/course'
 
@@ -19,6 +20,7 @@ export function useCreateCourse() {
   return useMutation({
     mutationFn: (data: CourseCreate) => coursesApi.create(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['courses'] }),
+    onError: () => toast.error('Failed to create course'),
   })
 }
 
@@ -30,6 +32,7 @@ export function useUpdateCourse(id: number) {
       qc.invalidateQueries({ queryKey: ['courses'] })
       qc.invalidateQueries({ queryKey: ['courses', id] })
     },
+    onError: () => toast.error('Failed to update course'),
   })
 }
 
@@ -38,6 +41,7 @@ export function useDeleteCourse() {
   return useMutation({
     mutationFn: (id: number) => coursesApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['courses'] }),
+    onError: () => toast.error('Failed to delete course'),
   })
 }
 
@@ -46,5 +50,6 @@ export function useSetCourseHoles(courseId: number) {
   return useMutation({
     mutationFn: (holes: CourseHoleCreate[]) => coursesApi.setHoles(courseId, holes),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['courses', courseId, 'holes'] }),
+    onError: () => toast.error('Failed to save hole layout'),
   })
 }

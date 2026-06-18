@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { golfersApi } from '@/api/golfers'
 import type { GolferCreate } from '@/types/golfer'
 
@@ -23,6 +24,7 @@ export function useCreateGolfer() {
   return useMutation({
     mutationFn: (data: GolferCreate) => golfersApi.create(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['golfers'] }),
+    onError: () => toast.error('Failed to create golfer'),
   })
 }
 
@@ -34,6 +36,7 @@ export function useUpdateGolfer(id: number) {
       qc.invalidateQueries({ queryKey: ['golfers'] })
       qc.invalidateQueries({ queryKey: ['golfers', id] })
     },
+    onError: () => toast.error('Failed to update golfer'),
   })
 }
 
@@ -42,5 +45,6 @@ export function useDeleteGolfer() {
   return useMutation({
     mutationFn: (id: number) => golfersApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['golfers'] }),
+    onError: () => toast.error('Failed to delete golfer'),
   })
 }

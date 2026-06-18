@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useRounds, useDeleteRound } from '@/hooks/useRounds'
 import { useGolfers } from '@/hooks/useGolfers'
 import { useCourses } from '@/hooks/useCourses'
@@ -8,10 +8,10 @@ import type { Round } from '@/types/round'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ErrorMessage } from '@/components/shared/ErrorMessage'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
   SelectContent,
@@ -86,11 +86,7 @@ function Scorecard({ round }: { round: Round }) {
                     {h.gir == null ? '—' : h.gir ? '✓' : '✗'}
                   </td>
                   <td className="px-2 py-1 text-center capitalize">
-                    {h.drive_result
-                      ? h.drive_result.replace(/_/g, ' ')
-                      : h.par === 3
-                        ? '—'
-                        : '—'}
+                    {h.drive_result ? h.drive_result.replace(/_/g, ' ') : '—'}
                   </td>
                 </tr>
               )
@@ -102,7 +98,41 @@ function Scorecard({ round }: { round: Round }) {
   )
 }
 
+function RoundsTableSkeleton() {
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Date</TableHead>
+            <TableHead>Golfer</TableHead>
+            <TableHead>Course</TableHead>
+            <TableHead>Holes</TableHead>
+            <TableHead>Strokes</TableHead>
+            <TableHead>Score</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+              <TableCell><Skeleton className="h-4 w-10" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-10 rounded-full" /></TableCell>
+              <TableCell><Skeleton className="h-7 w-16 ml-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
 export default function RoundsPage() {
+  const navigate = useNavigate()
   const [filters, setFilters] = useState<RoundFilters>({})
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Round | null>(null)
@@ -125,7 +155,6 @@ export default function RoundsPage() {
     return courses?.find((c) => c.id === id)?.name ?? `Course #${id}`
   }
 
-  if (isLoading) return <LoadingSpinner />
   if (isError) return <ErrorMessage message="Failed to load rounds." />
 
   return (
@@ -140,14 +169,14 @@ export default function RoundsPage() {
       {/* Filter bar */}
       <div className="flex flex-wrap gap-4 items-end rounded-lg border bg-card p-4">
         <div className="space-y-1 min-w-[160px]">
-          <Label className="text-xs">Golfer</Label>
+          <Label htmlFor="filter-golfer" className="text-xs">Golfer</Label>
           <Select
             value={filters.golfer_id ? String(filters.golfer_id) : ''}
             onValueChange={(v) =>
               setFilters((f) => ({ ...f, golfer_id: v ? Number(v) : undefined }))
             }
           >
-            <SelectTrigger className="w-full h-8 text-sm">
+            <SelectTrigger id="filter-golfer" className="w-full h-8 text-sm">
               <SelectValue placeholder="All golfers" />
             </SelectTrigger>
             <SelectContent>
@@ -162,14 +191,14 @@ export default function RoundsPage() {
         </div>
 
         <div className="space-y-1 min-w-[160px]">
-          <Label className="text-xs">Course</Label>
+          <Label htmlFor="filter-course" className="text-xs">Course</Label>
           <Select
             value={filters.course_id ? String(filters.course_id) : ''}
             onValueChange={(v) =>
               setFilters((f) => ({ ...f, course_id: v ? Number(v) : undefined }))
             }
           >
-            <SelectTrigger className="w-full h-8 text-sm">
+            <SelectTrigger id="filter-course" className="w-full h-8 text-sm">
               <SelectValue placeholder="All courses" />
             </SelectTrigger>
             <SelectContent>
@@ -184,8 +213,9 @@ export default function RoundsPage() {
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs">Date</Label>
+          <Label htmlFor="filter-date" className="text-xs">Date</Label>
           <Input
+            id="filter-date"
             type="date"
             className="h-8 text-sm w-36"
             value={filters.from_date ?? ''}
@@ -208,7 +238,9 @@ export default function RoundsPage() {
         )}
       </div>
 
-      {!rounds?.length ? (
+      {isLoading ? (
+        <RoundsTableSkeleton />
+      ) : !rounds?.length ? (
         <EmptyState
           message="No rounds found."
           action={
@@ -241,35 +273,36 @@ export default function RoundsPage() {
                     >
                       {r.date_played}
                     </TableCell>
-                    <TableCell
-                      onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                    >
+                    <TableCell onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
                       {golferName(r.golfer_id)}
                     </TableCell>
-                    <TableCell
-                      onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                    >
+                    <TableCell onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
                       {courseName(r.course_id)}
                     </TableCell>
-                    <TableCell
-                      onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                    >
+                    <TableCell onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
                       {r.holes_played}
                     </TableCell>
-                    <TableCell
-                      onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                    >
+                    <TableCell onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
                       {r.total_strokes}
                     </TableCell>
-                    <TableCell
-                      onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
-                    >
+                    <TableCell onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}>
                       <ScoreBadge score={r.score_vs_par} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        aria-label={`Relog round from ${r.date_played}`}
+                        onClick={() =>
+                          navigate('/rounds/new', { state: { relogRound: r } })
+                        }
+                      >
+                        Relog
+                      </Button>
                       <Button
                         size="sm"
                         variant="destructive"
+                        aria-label={`Delete round from ${r.date_played}`}
                         onClick={() => setDeleteTarget(r)}
                       >
                         Delete

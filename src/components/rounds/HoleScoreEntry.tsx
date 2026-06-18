@@ -16,6 +16,7 @@ interface HoleScoreEntryProps {
   onBack: () => void
   onSubmit: (holes: HoleScoreRowValues[], totalStrokes: number, scoreVsPar: number) => void
   loading?: boolean
+  initialHoles?: HoleScoreRowValues[]
 }
 
 function makeDefaultHoles(count: number): HoleScoreRowValues[] {
@@ -38,11 +39,12 @@ function HoleRow({
   register: ReturnType<typeof useForm<HoleScoresFormValues>>['register']
 }) {
   const par = useWatch({ control, name: `holes.${index}.par` })
+  const holeLabel = `Hole ${index + 1}`
 
   return (
     <div className="grid grid-cols-[2rem_3.5rem_3.5rem_3.5rem_2.5rem_6rem] gap-2 items-center">
       {/* Hole number */}
-      <span className="text-sm text-center text-muted-foreground">{index + 1}</span>
+      <span className="text-sm text-center text-muted-foreground" aria-hidden="true">{index + 1}</span>
 
       {/* Par */}
       <Controller
@@ -53,7 +55,7 @@ function HoleRow({
             value={String(field.value)}
             onValueChange={(v) => field.onChange(Number(v) as 3 | 4 | 5)}
           >
-            <SelectTrigger className="w-full h-8 text-sm">
+            <SelectTrigger className="w-full h-8 text-sm" aria-label={`${holeLabel} par`}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -70,6 +72,7 @@ function HoleRow({
         type="number"
         min="1"
         className="h-8 text-sm"
+        aria-label={`${holeLabel} strokes`}
         {...register(`holes.${index}.strokes`, {
           setValueAs: (v) => (v === '' ? undefined : Number(v)),
         })}
@@ -80,6 +83,7 @@ function HoleRow({
         type="number"
         min="0"
         className="h-8 text-sm"
+        aria-label={`${holeLabel} putts`}
         {...register(`holes.${index}.putts`, {
           setValueAs: (v) => (v === '' ? null : Number(v)),
         })}
@@ -90,13 +94,14 @@ function HoleRow({
         <input
           type="checkbox"
           className="h-4 w-4 rounded border-input accent-primary"
+          aria-label={`${holeLabel} greens in regulation`}
           {...register(`holes.${index}.gir`)}
         />
       </div>
 
       {/* Drive result — hidden on par 3 */}
       {par === 3 ? (
-        <span className="text-xs text-muted-foreground text-center">—</span>
+        <span className="text-xs text-muted-foreground text-center" aria-hidden="true">—</span>
       ) : (
         <Controller
           control={control}
@@ -106,7 +111,7 @@ function HoleRow({
               value={field.value ?? ''}
               onValueChange={(v) => field.onChange(v || null)}
             >
-              <SelectTrigger className="w-full h-8 text-xs">
+              <SelectTrigger className="w-full h-8 text-xs" aria-label={`${holeLabel} drive result`}>
                 <SelectValue placeholder="Drive" />
               </SelectTrigger>
               <SelectContent>
@@ -123,10 +128,10 @@ function HoleRow({
   )
 }
 
-export function HoleScoreEntry({ holesPlayed, onBack, onSubmit, loading = false }: HoleScoreEntryProps) {
+export function HoleScoreEntry({ holesPlayed, onBack, onSubmit, loading = false, initialHoles }: HoleScoreEntryProps) {
   const { control, register, handleSubmit } = useForm<HoleScoresFormValues>({
     resolver: zodResolver(holeScoresSchema),
-    defaultValues: { holes: makeDefaultHoles(holesPlayed) },
+    defaultValues: { holes: initialHoles ?? makeDefaultHoles(holesPlayed) },
   })
 
   const { fields } = useFieldArray({ control, name: 'holes' })

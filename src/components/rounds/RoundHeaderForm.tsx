@@ -21,6 +21,7 @@ interface RoundHeaderFormProps {
   onSaveOnly: (values: RoundHeaderFormValues) => void
   onContinue: (values: RoundHeaderFormValues) => void
   loading?: boolean
+  initialValues?: Partial<RoundHeaderFormValues>
 }
 
 function FieldError({ message }: { message?: string }) {
@@ -34,6 +35,7 @@ export function RoundHeaderForm({
   onSaveOnly,
   onContinue,
   loading = false,
+  initialValues,
 }: RoundHeaderFormProps) {
   const {
     register,
@@ -49,6 +51,7 @@ export function RoundHeaderForm({
       total_putts: null,
       greens_in_reg: null,
       notes: '',
+      ...initialValues,
     },
   })
 
@@ -56,7 +59,7 @@ export function RoundHeaderForm({
     <form className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Golfer</Label>
+          <Label htmlFor="golfer_id">Golfer</Label>
           <Controller
             control={control}
             name="golfer_id"
@@ -65,7 +68,7 @@ export function RoundHeaderForm({
                 value={field.value ? String(field.value) : ''}
                 onValueChange={(v) => field.onChange(Number(v))}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="golfer_id" className="w-full">
                   <SelectValue placeholder="Select golfer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -82,7 +85,7 @@ export function RoundHeaderForm({
         </div>
 
         <div className="space-y-2">
-          <Label>Course</Label>
+          <Label htmlFor="course_id">Course</Label>
           <Controller
             control={control}
             name="course_id"
@@ -91,7 +94,7 @@ export function RoundHeaderForm({
                 value={field.value ? String(field.value) : ''}
                 onValueChange={(v) => field.onChange(Number(v))}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="course_id" className="w-full">
                   <SelectValue placeholder="Select course" />
                 </SelectTrigger>
                 <SelectContent>
@@ -110,8 +113,8 @@ export function RoundHeaderForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Date Played</Label>
-          <Input type="date" {...register('date_played')} />
+          <Label htmlFor="date_played">Date Played</Label>
+          <Input id="date_played" type="date" {...register('date_played')} />
           <FieldError message={errors.date_played?.message} />
         </div>
 

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useCourses, useCreateCourse, useUpdateCourse, useDeleteCourse } from '@/hooks/useCourses'
+import { roundsApi } from '@/api/rounds'
 import type { Course } from '@/types/course'
 import type { CourseFormValues } from '@/schemas/course'
 import { CourseForm } from '@/components/courses/CourseForm'
@@ -30,6 +32,12 @@ export default function CoursesPage() {
   const [deleteTarget, setDeleteTarget] = useState<Course | null>(null)
 
   const updateCourse = useUpdateCourse(editTarget?.id ?? 0)
+
+  const { data: courseRounds } = useQuery({
+    queryKey: ['rounds', { course_id: deleteTarget?.id }],
+    queryFn: () => roundsApi.list({ course_id: deleteTarget!.id }),
+    enabled: !!deleteTarget,
+  })
 
   function handleCreate(values: CourseFormValues) {
     createCourse.mutate(values, { onSuccess: () => setAddOpen(false) })
@@ -134,7 +142,7 @@ export default function CoursesPage() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title="Delete Course"
-        message={`Delete "${deleteTarget?.name}"? This will also delete all rounds played at this course and their hole scores.`}
+        message={`Delete "${deleteTarget?.name}"? This will also delete ${courseRounds ? `${courseRounds.length} round(s)` : 'all rounds'} played here and their hole scores.`}
         onConfirm={handleDelete}
         loading={deleteCourse.isPending}
       />

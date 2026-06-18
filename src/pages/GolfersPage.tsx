@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useGolfers, useCreateGolfer, useUpdateGolfer, useDeleteGolfer } from '@/hooks/useGolfers'
+import { roundsApi } from '@/api/rounds'
 import type { Golfer } from '@/types/golfer'
 import type { GolferFormValues } from '@/schemas/golfer'
 import { GolferForm } from '@/components/golfers/GolferForm'
@@ -30,6 +32,12 @@ export default function GolfersPage() {
   const [deleteTarget, setDeleteTarget] = useState<Golfer | null>(null)
 
   const updateGolfer = useUpdateGolfer(editTarget?.id ?? 0)
+
+  const { data: golferRounds } = useQuery({
+    queryKey: ['rounds', { golfer_id: deleteTarget?.id }],
+    queryFn: () => roundsApi.list({ golfer_id: deleteTarget!.id }),
+    enabled: !!deleteTarget,
+  })
 
   function handleCreate(values: GolferFormValues) {
     createGolfer.mutate(values, { onSuccess: () => setAddOpen(false) })
@@ -127,7 +135,7 @@ export default function GolfersPage() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         title="Delete Golfer"
-        message={`Delete "${deleteTarget?.name}"? This will also delete all of their rounds and hole scores.`}
+        message={`Delete "${deleteTarget?.name}"? This will also delete ${golferRounds ? `${golferRounds.length} round(s)` : 'all rounds'} and their hole scores.`}
         onConfirm={handleDelete}
         loading={deleteGolfer.isPending}
       />

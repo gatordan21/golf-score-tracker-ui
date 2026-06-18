@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useGolfer, useGolferStats, useGolferRounds } from '@/hooks/useGolfers'
+import { DrivingChart } from '@/components/stats/DrivingChart'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ErrorMessage } from '@/components/shared/ErrorMessage'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -53,6 +54,17 @@ export default function GolferDetailPage() {
               </div>
             ))}
           </div>
+
+          {stats.driving && (
+            <div className="mt-4">
+              <h3 className="mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Driving Accuracy
+              </h3>
+              <div className="rounded-lg border bg-card p-4 max-w-lg">
+                <DrivingChart driving={stats.driving} />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

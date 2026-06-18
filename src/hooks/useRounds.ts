@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { roundsApi } from '@/api/rounds'
 import type { RoundFilters } from '@/api/rounds'
 import type { RoundCreate } from '@/types/round'
@@ -22,6 +23,7 @@ export function useCreateRound() {
   return useMutation({
     mutationFn: (data: RoundCreate) => roundsApi.create(data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['rounds'] }),
+    onError: () => toast.error('Failed to save round'),
   })
 }
 
@@ -30,5 +32,6 @@ export function useDeleteRound() {
   return useMutation({
     mutationFn: (id: number) => roundsApi.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['rounds'] }),
+    onError: () => toast.error('Failed to delete round'),
   })
 }
